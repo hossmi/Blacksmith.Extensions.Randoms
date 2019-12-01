@@ -96,18 +96,25 @@ namespace Blacksmith.Extensions.Randoms
             return prv_peekRandom<T>(items, Instance);
         }
 
-
-        public static T popRandom<T>(this IList<T> items, Random random)
+        public static T popFromRandom<T>(this IList<T> items, Random random)
         {
             return prv_popRandom<T>(items, random);
         }
 
-        public static T popRandom<T>(this IList<T> items)
+        public static T popFromRandom<T>(this IList<T> items)
         {
             return prv_popRandom<T>(items, Instance);
         }
 
+        public static T pushAtRandom<T>(this IList<T> items, T item, Random random)
+        {
+            return prv_pushAtRandom<T>(items, item, random);
+        }
 
+        public static T pushAtRandom<T>(this IList<T> items, T item)
+        {
+            return prv_pushAtRandom<T>(items, item, Instance);
+        }
 
         public static void shuffle<T>(this T[] items, Random random)
         {
@@ -153,8 +160,6 @@ namespace Blacksmith.Extensions.Randoms
             for (int i = 0; i < itemCount; i++)
                 yield return buffer[i];
         }
-
-
 
         private static T prv_peekRandom<T>(IReadOnlyList<T> items, Random random)
         {
@@ -207,10 +212,31 @@ namespace Blacksmith.Extensions.Randoms
             return item;
         }
 
+        private static T prv_pushAtRandom<T>(IList<T> items, T item, Random random)
+        {
+            int index;
+
+            if (items == null)
+                throw new ArgumentNullException(nameof(items));
+
+            index = prv_getRandomInsertPosition(random, items.Count);
+            items.Insert(index, item);
+
+            return item;
+        }
+
         private static int prv_getRandomPosition(Random random, int count)
         {
             if (count <= 0)
                 throw new EmptyCollectionException();
+
+            return random.Next(0, count);
+        }
+
+        private static int prv_getRandomInsertPosition(Random random, int count)
+        {
+            if (count < 0)
+                throw new ArgumentOutOfRangeException();
 
             return random.Next(0, count);
         }
