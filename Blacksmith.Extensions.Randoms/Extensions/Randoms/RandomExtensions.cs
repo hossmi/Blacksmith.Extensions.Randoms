@@ -1,4 +1,5 @@
 ﻿using Blacksmith.Exceptions;
+using Blacksmith.Services;
 using System;
 using System.Collections.Generic;
 
@@ -6,26 +7,45 @@ namespace Blacksmith.Extensions.Randoms
 {
     public static class RandomExtensions
     {
-        private static Random random;
+        private static Random currentRandom;
+        private static IShuffleStrategy currentShuffleStrategy;
+        private static int currentShuffleBufferSize;
 
         static RandomExtensions()
         {
-            int seed;
+            long seed;
 
-            seed = (int)(((long)Environment.CurrentManagedThreadId * (long)Environment.TickCount) % (long)int.MaxValue);
+            seed = (long)Environment.CurrentManagedThreadId * Environment.TickCount;
+            seed = seed % int.MaxValue;
+            seed = seed * DateTime.UtcNow.Millisecond;
+            seed = seed % int.MaxValue;
+            currentRandom = new Random((int)seed);
 
-            random = new Random(seed);
+            currentShuffleStrategy = new RandomIterationsShuffleStrategy();
+            CurrentShuffleBufferSize = 1024 * 1024;
         }
 
-        public static Random Instance
+        public static Random CurrentRandom
         {
-            get
-            {
-                return random;
-            }
+            get => currentRandom;
+            set => currentRandom = value ?? throw new ArgumentNullException(nameof(CurrentRandom));
+        }
+
+        public static IShuffleStrategy CurrentShuffleStrategy
+        {
+            get => currentShuffleStrategy;
+            set => currentShuffleStrategy = value ?? throw new ArgumentNullException(nameof(CurrentShuffleStrategy));
+        }
+
+        public static int CurrentShuffleBufferSize
+        {
+            get => currentShuffleBufferSize;
             set
             {
-                random = value ?? throw new ArgumentNullException(nameof(Instance));
+                if(value < 2)
+                    throw new TooSmallShuffleBufferSize(value);
+
+                currentShuffleBufferSize = value;
             }
         }
 
@@ -48,7 +68,7 @@ namespace Blacksmith.Extensions.Randoms
 
         public static bool isTrue(this Random random)
         {
-            return random.NextDouble() >= 0.5;
+            return isTrue(random, 0.5);
         }
 
         public static bool isTrue(this Random random, double threshold)
@@ -58,12 +78,28 @@ namespace Blacksmith.Extensions.Randoms
 
         public static double nextDouble(this Random random, double max)
         {
-            return random.NextDouble() * max;
+            return nextDouble(random, 0, max);
+        }
+
+        public static double nextDouble(this Random random, double min, double max)
+        {
+            double range;
+
+            range = max - min;
+            return min + random.NextDouble() * range;
         }
 
         public static decimal nextDecimal(this Random random, decimal max)
         {
-            return (decimal)random.NextDouble() * max;
+            return nextDecimal(random, decimal.Zero, max);
+        }
+
+        public static decimal nextDecimal(this Random random, decimal min, decimal max)
+        {
+            decimal range;
+
+            range = max - min;
+            return min + (decimal)random.NextDouble() * range;
         }
 
         public static T peekRandom<T>(this IReadOnlyList<T> items, Random random)
@@ -73,7 +109,7 @@ namespace Blacksmith.Extensions.Randoms
 
         public static T peekRandom<T>(this IReadOnlyList<T> items)
         {
-            return prv_peekRandom<T>(items, Instance);
+            return prv_peekRandom<T>(items, currentRandom);
         }
 
         public static T peekRandom<T>(this IList<T> items, Random random)
@@ -83,7 +119,7 @@ namespace Blacksmith.Extensions.Randoms
 
         public static T peekRandom<T>(this IList<T> items)
         {
-            return prv_peekRandom<T>(items, Instance);
+            return prv_peekRandom<T>(items, currentRandom);
         }
 
         public static T peekRandom<T>(this T[] items, Random random)
@@ -93,7 +129,7 @@ namespace Blacksmith.Extensions.Randoms
 
         public static T peekRandom<T>(this T[] items)
         {
-            return prv_peekRandom<T>(items, Instance);
+            return prv_peekRandom<T>(items, currentRandom);
         }
 
         public static T popFromRandom<T>(this IList<T> items, Random random)
@@ -103,7 +139,7 @@ namespace Blacksmith.Extensions.Randoms
 
         public static T popFromRandom<T>(this IList<T> items)
         {
-            return prv_popRandom<T>(items, Instance);
+            return prv_popRandom<T>(items, currentRandom);
         }
 
         public static T pushAtRandom<T>(this IList<T> items, T item, Random random)
@@ -113,51 +149,76 @@ namespace Blacksmith.Extensions.Randoms
 
         public static T pushAtRandom<T>(this IList<T> items, T item)
         {
-            return prv_pushAtRandom<T>(items, item, Instance);
+            return prv_pushAtRandom<T>(items, item, currentRandom);
+        }
+
+        public static void shuffle<T>(this T[] items, Random random, IShuffleStrategy shuffleStrategy)
+        {
+            prv_shuffle<T>(items, random, shuffleStrategy);
         }
 
         public static void shuffle<T>(this T[] items, Random random)
         {
-            int n = random.Next(0, items.Length);
-
-            for (int i = 0; i < n; i++)
-            {
-                int x = random.Next(0, items.Length);
-                int y = random.Next(0, items.Length);
-
-                T item;
-
-                item = items[x];
-                items[x] = items[y];
-                items[y] = item;
-            }
+            prv_shuffle<T>(items, random, currentShuffleStrategy);
         }
 
-        public static IEnumerable<T> getShuffled<T>(this IEnumerable<T> items, Random random, int bufferSize)
+        public static void shuffle<T>(this T[] items)
         {
-            T[] buffer = new T[bufferSize];
-            IEnumerator<T> enumerator = items.GetEnumerator();
-            int itemCount;
+            prv_shuffle<T>(items, currentRandom, currentShuffleStrategy);
+        }
 
-            for (itemCount = 0; itemCount < bufferSize; itemCount++)
+        public static IEnumerable<T> shuffle<T>(this IEnumerable<T> items)
+        {
+            return prv_shuffle<T>(items, currentRandom, currentShuffleBufferSize);
+        }
+
+        public static IEnumerable<T> shuffle<T>(this IEnumerable<T> items, Random random)
+        {
+            return prv_shuffle<T>(items, random, currentShuffleBufferSize);
+        }
+
+        public static IEnumerable<T> shuffle<T>(this IEnumerable<T> items, Random random, int bufferSize)
+        {
+            return prv_shuffle<T>(items, random, bufferSize);
+        }
+
+        private static IEnumerable<T> prv_shuffle<T>(IEnumerable<T> items, Random random, int bufferSize)
+        {
+            T[] buffer;
+
+            if (bufferSize < 2)
+                throw new TooSmallShuffleBufferSize(bufferSize);
+            if (random == null)
+                throw new ArgumentNullException(nameof(random));
+            if (items == null)
+                throw new ArgumentNullException(nameof(items));
+
+            buffer = new T[bufferSize];
+            IEnumerator<T> enumerator = items.GetEnumerator();
+            int bufferUpperIndex;
+
+            for (bufferUpperIndex = 0; bufferUpperIndex < bufferSize; bufferUpperIndex++)
             {
                 if (enumerator.MoveNext())
-                    buffer[itemCount] = enumerator.Current;
+                    buffer[bufferUpperIndex] = enumerator.Current;
                 else
                     break;
             }
 
-            if (itemCount <= 0)
+            if (bufferUpperIndex <= 0)
                 yield break;
 
             while (enumerator.MoveNext())
             {
-                int nextItem = random.Next(itemCount);
+                int nextItem;
+
+                nextItem = random.Next(bufferUpperIndex);
                 yield return buffer[nextItem];
+
                 buffer[nextItem] = enumerator.Current;
             }
 
-            for (int i = 0; i < itemCount; i++)
+            for (int i = 0; i < bufferUpperIndex; i++)
                 yield return buffer[i];
         }
 
@@ -239,6 +300,18 @@ namespace Blacksmith.Extensions.Randoms
                 throw new ArgumentOutOfRangeException();
 
             return random.Next(0, count);
+        }
+
+        private static void prv_shuffle<T>(T[] items, Random random, IShuffleStrategy shuffleStrategy)
+        {
+            if (items == null)
+                throw new ArgumentNullException(nameof(items));
+            if (random == null)
+                throw new ArgumentNullException(nameof(random));
+            if (shuffleStrategy == null)
+                throw new ArgumentNullException(nameof(shuffleStrategy));
+
+            shuffleStrategy.shuffle(items, random);
         }
     }
 }
