@@ -3,79 +3,77 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Blacksmith.Extensions.Randoms.Tests
 {
     public class UnitTest1
     {
-        private static readonly Random r;
-        private static readonly TimeSpan TIMEUP;
+        private static readonly double PRECISION;
+
+        private readonly ITestOutputHelper output;
 
         static UnitTest1()
         {
-            r = new Random((int)(DateTime.UtcNow.Ticks % int.MaxValue));
-            TIMEUP = new TimeSpan(0, 1, 0);
+#if DEBUG
+            PRECISION = 0.001;
+#else
+            PRECISION = 0.0001;
+#endif
         }
 
-        [Fact]
-        public void isTrue_returns_true_50_percent_of_times_after_1_minute_of_execution()
+        public UnitTest1(ITestOutputHelper output)
         {
-            const double precision = 0.001;
-            Stopwatch stopwatch;
-            long trues, falses;
+            this.output = output;
+        }
+
+        [Theory]
+        [InlineData(0.0, 1000000000L)]
+        [InlineData(0.236, 1000000000L)]
+        [InlineData(0.382, 1000000000L)]
+        [InlineData(0.5, 1000000000L)]
+        [InlineData(0.618, 1000000000L)]
+        [InlineData(0.762, 1000000000L)]
+        [InlineData(1, 1000000000L)]
+        public void isTrue_returns_same_amount_of_trues_and_falses(double truePercentage, long iterations)
+        {
+            bool proportionIsCloseToTruePercentage;
             double proportion;
-            bool isInRange;
+            Random r;
+            long trues, falses;
 
-            stopwatch = Stopwatch.StartNew();
-
+            r = RandomExtensions.CurrentRandom;
             trues = 0;
             falses = 0;
-            for (long i = 0; stopwatch.Elapsed < TIMEUP; i++)
+
+            for (long i = 0; i < iterations; ++i)
             {
-                if (r.isTrue())
-                    trues++;
+                if (r.isTrue(truePercentage))
+                    ++trues;
                 else
-                    falses++;
+                    ++falses;
             }
 
-            proportion = (double)trues / (double)falses;
-            isInRange = (1 - precision) <= proportion && proportion <= (1 + precision);
-            Assert.True(isInRange);
+            proportion = (double)trues / ((double)falses + (double)trues);
+            this.output.WriteLine($"Proportion {proportion,-20}, Expected {truePercentage}");
+
+            proportion = proportion - truePercentage;
+            proportion = Math.Abs(proportion);
+            proportionIsCloseToTruePercentage = proportion <= PRECISION;
+
+            Assert.True(proportionIsCloseToTruePercentage);
         }
 
-        [Fact]
-        public void isTrue_returns_true_specified_percent_of_times_after_1_minute_of_execution()
+        [Theory]
+        [InlineData(1000000000L)]
+        public void next_for_randoms_returns_each_element_equally_after_1_minute_of_execution(long iterations)
         {
-            const double PRECISION = 0.001;
-            const double TREND = 0.75;
-            Stopwatch stopwatch;
-            long trues, falses;
-            double proportion;
-            bool isInRange;
+            bool allDeviationsAreCloseToZero;
+            string[] names;
+            IDictionary<string, long> choosenNames;
+            double average;
 
-            stopwatch = Stopwatch.StartNew();
-
-            trues = 0;
-            falses = 0;
-            for (long i = 0; stopwatch.Elapsed < TIMEUP; i++)
-            {
-                if (r.isTrue(TREND))
-                    trues++;
-                else
-                    falses++;
-            }
-
-            proportion = (double)trues / (double)(trues + falses);
-            isInRange = (TREND - PRECISION) <= proportion && proportion <= (TREND + PRECISION);
-            Assert.True(isInRange);
-        }
-
-        [Fact]
-        public void next_for_randoms_returns_each_element_equally_after_1_minute_of_execution()
-        {
-            const double PRECISION = 0.001;
-
-            string[] names = new string[]
+            names = new string[]
             {
                 "pepe",
                 "tronco",
@@ -85,32 +83,52 @@ namespace Blacksmith.Extensions.Randoms.Tests
                 "Narciso",
             };
 
-            IDictionary<string, int> choosenNames = new Dictionary<string, int>();
-            Stopwatch stopwatch = Stopwatch.StartNew();
+            choosenNames = new Dictionary<string, long>();
 
             foreach (string name in names)
                 choosenNames.Add(name, 0);
 
-            for (long i = 0; stopwatch.Elapsed < TIMEUP; i++)
+            for (int i = 0; i < iterations; ++i)
             {
                 string name;
 
-                name = r.next<string>(names);
-                choosenNames[name] += 1;
+                name = names.peekRandom();
+                choosenNames[name] = choosenNames[name] + 1;
             }
 
-            double[] namesCounts = choosenNames.Values
+            average = (double)iterations / (double)names.Length;
+
+            allDeviationsAreCloseToZero = choosenNames
+                .Values
                 .Select(v => (double)v)
+                .Select(v => (v - average) / average)
+                .Select(Math.Abs)
+                .All(deviation =>
+                {
+                    this.output.WriteLine($"Deviation {deviation,-18}, Precission {PRECISION}");
+                    return deviation < PRECISION;
+                });
+
+            Assert.True(allDeviationsAreCloseToZero);
+        }
+
+        [Theory]
+        [InlineData(1000, 0.75d)]
+        public void suffled_array_must_have_swapped_the_major_part_of_its_items(int arraySize, double swappedPercentage)
+        {
+            int[] array;
+
+            throw new NotImplementedException();
+            array = Enumerable
+                .Range(0, arraySize)
                 .ToArray();
 
-            double average = namesCounts.Average();
+            array.shuffle();
 
-            double[] deviations = namesCounts
-                .Select(v => Math.Abs(v - average) / average)
-                .ToArray();
+            for (int i = 0; i < arraySize; ++i)
+            {
 
-            foreach (double deviation in deviations)
-                Assert.True(deviation < PRECISION);
+            }
         }
     }
 }
