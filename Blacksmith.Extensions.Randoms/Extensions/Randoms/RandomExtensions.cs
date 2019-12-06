@@ -13,16 +13,9 @@ namespace Blacksmith.Extensions.Randoms
 
         static RandomExtensions()
         {
-            long seed;
-
-            seed = (long)Environment.CurrentManagedThreadId * Environment.TickCount;
-            seed = seed % int.MaxValue;
-            seed = seed * DateTime.UtcNow.Millisecond;
-            seed = seed % int.MaxValue;
-            currentRandom = new Random((int)seed);
-
+            currentRandom = new Random(prv_generateSeed());
             currentShuffleStrategy = new RandomIterationsShuffleStrategy();
-            CurrentShuffleBufferSize = 1024 * 1024;
+            currentShuffleBufferSize = 1024 * 1024;
         }
 
         public static Random CurrentRandom
@@ -313,5 +306,16 @@ namespace Blacksmith.Extensions.Randoms
 
             shuffleStrategy.shuffle(items, random);
         }
+
+        private static int prv_generateSeed()
+        {
+            long seed = (long)Environment.CurrentManagedThreadId * Environment.TickCount;
+            seed = seed % int.MaxValue;
+            seed = seed * DateTime.UtcNow.Millisecond;
+            seed = seed % int.MaxValue;
+
+            return (int)seed;
+        }
+
     }
 }
