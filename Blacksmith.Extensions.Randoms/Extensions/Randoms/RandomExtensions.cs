@@ -1,4 +1,5 @@
-﻿using Blacksmith.Exceptions;
+﻿using Blacksmith.Algorithms;
+using Blacksmith.Exceptions;
 using System;
 using System.Collections.Generic;
 
@@ -7,12 +8,12 @@ namespace Blacksmith.Extensions.Randoms
     public static class RandomExtensions
     {
         private static Random currentRandom;
-        private static int currentShuffleBufferSize;
+        private static IShuffleStrategy currentShuffleStrategy;
 
         static RandomExtensions()
         {
             currentRandom = new Random(prv_generateSeed());
-            currentShuffleBufferSize = 1024 * 1024;
+            currentShuffleStrategy = new TreeShuffleStrategy();
         }
 
         public static Random CurrentRandom
@@ -21,16 +22,10 @@ namespace Blacksmith.Extensions.Randoms
             set => currentRandom = value ?? throw new ArgumentNullException(nameof(CurrentRandom));
         }
 
-        public static int CurrentShuffleBufferSize
+        public static IShuffleStrategy CurrentShuffleStrategy
         {
-            get => currentShuffleBufferSize;
-            set
-            {
-                if(value < 2)
-                    throw new TooSmallShuffleBufferSize(value);
-
-                currentShuffleBufferSize = value;
-            }
+            get => currentShuffleStrategy;
+            set => currentShuffleStrategy = value ?? throw new ArgumentNullException(nameof(CurrentShuffleStrategy));
         }
 
         public static DateTime getDateBetween(this Random random, DateTime from, DateTime to)
@@ -138,57 +133,29 @@ namespace Blacksmith.Extensions.Randoms
 
         public static IEnumerable<T> shuffle<T>(this IEnumerable<T> items)
         {
-            return prv_shuffle<T>(items, currentRandom, currentShuffleBufferSize);
+            return prv_shuffle<T>(items, currentRandom, currentShuffleStrategy);
         }
 
         public static IEnumerable<T> shuffle<T>(this IEnumerable<T> items, Random random)
         {
-            return prv_shuffle<T>(items, random, currentShuffleBufferSize);
+            return prv_shuffle<T>(items, random, currentShuffleStrategy);
         }
 
-        public static IEnumerable<T> shuffle<T>(this IEnumerable<T> items, Random random, int bufferSize)
+        public static IEnumerable<T> shuffle<T>(this IEnumerable<T> items, Random random, IShuffleStrategy shuffleStrategy)
         {
-            return prv_shuffle<T>(items, random, bufferSize);
+            return prv_shuffle<T>(items, random, shuffleStrategy);
         }
 
-        private static IEnumerable<T> prv_shuffle<T>(IEnumerable<T> items, Random random, int bufferSize)
+        private static IEnumerable<T> prv_shuffle<T>(IEnumerable<T> items, Random random, IShuffleStrategy shuffleStrategy)
         {
-            T[] buffer;
-
-            if (bufferSize < 2)
-                throw new TooSmallShuffleBufferSize(bufferSize);
+            if (shuffleStrategy == null)
+                throw new ArgumentNullException(nameof(shuffleStrategy));
             if (random == null)
                 throw new ArgumentNullException(nameof(random));
             if (items == null)
                 throw new ArgumentNullException(nameof(items));
 
-            buffer = new T[bufferSize];
-            IEnumerator<T> enumerator = items.GetEnumerator();
-            int bufferUpperIndex;
-
-            for (bufferUpperIndex = 0; bufferUpperIndex < bufferSize; bufferUpperIndex++)
-            {
-                if (enumerator.MoveNext())
-                    buffer[bufferUpperIndex] = enumerator.Current;
-                else
-                    break;
-            }
-
-            if (bufferUpperIndex <= 0)
-                yield break;
-
-            while (enumerator.MoveNext())
-            {
-                int nextItem;
-
-                nextItem = random.Next(bufferUpperIndex);
-                yield return buffer[nextItem];
-
-                buffer[nextItem] = enumerator.Current;
-            }
-
-            for (int i = 0; i < bufferUpperIndex; i++)
-                yield return buffer[i];
+            return shuffleStrategy.shuffle<T>(items, random);
         }
 
         private static T prv_peekRandom<T>(IReadOnlyList<T> items, Random random)

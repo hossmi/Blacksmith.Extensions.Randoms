@@ -117,6 +117,7 @@ namespace Blacksmith.Extensions.Randoms.Tests
         [InlineData(1000000, 0.85D)]
         [InlineData(1000000, 0.95D)]
         [InlineData(1000000, 1.0D)]
+        [InlineData(10000000, 0.95D)]
         public void an_array_must_be_completely_unordered_after_shuffle_method_call(int arraySize, double unorderedPercentage)
         {
             int[] array;
