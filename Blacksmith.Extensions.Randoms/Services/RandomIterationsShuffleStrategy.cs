@@ -6,9 +6,9 @@ namespace Blacksmith.Services
     {
         public void shuffle<T>(T[] items, Random random)
         {
-            int iterations; 
-            
-            iterations = random.Next(0, items.Length);
+            int iterations;
+
+            iterations = random.Next(items.Length / 2, items.Length);
 
             for (int i = 0; i < iterations; ++i)
             {
