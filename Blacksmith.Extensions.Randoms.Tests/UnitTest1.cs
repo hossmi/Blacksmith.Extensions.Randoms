@@ -1,7 +1,5 @@
-using Blacksmith.Services;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
@@ -114,15 +112,17 @@ namespace Blacksmith.Extensions.Randoms.Tests
         }
 
         [Theory]
-        [MemberData(nameof(getTestDataForArrayShuffleMethod))]
-        public void an_array_must_be_completely_unordered_after_shuffle_method_call(IShuffleStrategy shuffleStrategy, int arraySize, double unorderedPercentage)
+        [InlineData(1000000, 0.5D)]
+        [InlineData(1000000, 0.75D)]
+        [InlineData(1000000, 0.85D)]
+        [InlineData(1000000, 0.95D)]
+        [InlineData(1000000, 1.0D)]
+        public void an_array_must_be_completely_unordered_after_shuffle_method_call(int arraySize, double unorderedPercentage)
         {
             int[] array;
             int unordered;
             double unorderedProportion;
             bool arrayIsMessyEnough;
-
-            RandomExtensions.CurrentShuffleStrategy = shuffleStrategy;
 
             array = Enumerable
                 .Range(0, arraySize)
@@ -137,20 +137,8 @@ namespace Blacksmith.Extensions.Randoms.Tests
 
             unorderedProportion = (double)unordered / (double)arraySize;
             arrayIsMessyEnough = unorderedProportion >= unorderedPercentage;
+            Assert.Equal(arraySize, array.Length);
             Assert.True(arrayIsMessyEnough);
-        }
-
-        public static IEnumerable<object[]> getTestDataForArrayShuffleMethod()
-        {
-            IShuffleStrategy shuffleStrategy;
-
-            shuffleStrategy = new RandomIterationsShuffleStrategy();
-
-            yield return new object[] { shuffleStrategy, 1000, 0.50d };
-            yield return new object[] { shuffleStrategy, 1000, 0.75d };
-            yield return new object[] { shuffleStrategy, 1000, 0.85d };
-            yield return new object[] { shuffleStrategy, 1000, 0.95d };
-            yield return new object[] { shuffleStrategy, 1000, 1.00d };
         }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using Blacksmith.Exceptions;
-using Blacksmith.Services;
 using System;
 using System.Collections.Generic;
 
@@ -8,13 +7,11 @@ namespace Blacksmith.Extensions.Randoms
     public static class RandomExtensions
     {
         private static Random currentRandom;
-        private static IShuffleStrategy currentShuffleStrategy;
         private static int currentShuffleBufferSize;
 
         static RandomExtensions()
         {
             currentRandom = new Random(prv_generateSeed());
-            currentShuffleStrategy = new RandomIterationsShuffleStrategy();
             currentShuffleBufferSize = 1024 * 1024;
         }
 
@@ -22,12 +19,6 @@ namespace Blacksmith.Extensions.Randoms
         {
             get => currentRandom;
             set => currentRandom = value ?? throw new ArgumentNullException(nameof(CurrentRandom));
-        }
-
-        public static IShuffleStrategy CurrentShuffleStrategy
-        {
-            get => currentShuffleStrategy;
-            set => currentShuffleStrategy = value ?? throw new ArgumentNullException(nameof(CurrentShuffleStrategy));
         }
 
         public static int CurrentShuffleBufferSize
