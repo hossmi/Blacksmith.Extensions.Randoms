@@ -145,32 +145,32 @@ namespace Blacksmith.Extensions.Randoms
             return prv_pushAtRandom<T>(items, item, currentRandom);
         }
 
-        public static void shuffle<T>(this T[] items, Random random, IShuffleStrategy shuffleStrategy)
+        public static T[] shuffle<T>(this T[] items, Random random, IShuffleStrategy shuffleStrategy)
         {
-            prv_shuffle<T>(items, random, shuffleStrategy);
+            return prv_shuffle<T>(items, random, shuffleStrategy);
         }
 
-        public static void shuffle<T>(this T[] items, Random random)
+        public static T[] shuffle<T>(this T[] items, Random random)
         {
-            prv_shuffle<T>(items, random, currentShuffleStrategy);
+            return prv_shuffle<T>(items, random, currentShuffleStrategy);
         }
 
-        public static void shuffle<T>(this T[] items)
+        public static T[] shuffle<T>(this T[] items)
         {
-            prv_shuffle<T>(items, currentRandom, currentShuffleStrategy);
+            return prv_shuffle<T>(items, currentRandom, currentShuffleStrategy);
         }
 
-        public static IEnumerable<T> shuffle<T>(this IEnumerable<T> items)
+        public static IEnumerable<T> mixUp<T>(this IEnumerable<T> items)
         {
             return prv_shuffle<T>(items, currentRandom, currentShuffleBufferSize);
         }
 
-        public static IEnumerable<T> shuffle<T>(this IEnumerable<T> items, Random random)
+        public static IEnumerable<T> mixUp<T>(this IEnumerable<T> items, Random random)
         {
             return prv_shuffle<T>(items, random, currentShuffleBufferSize);
         }
 
-        public static IEnumerable<T> shuffle<T>(this IEnumerable<T> items, Random random, int bufferSize)
+        public static IEnumerable<T> mixUp<T>(this IEnumerable<T> items, Random random, int bufferSize)
         {
             return prv_shuffle<T>(items, random, bufferSize);
         }
@@ -295,7 +295,7 @@ namespace Blacksmith.Extensions.Randoms
             return random.Next(0, count);
         }
 
-        private static void prv_shuffle<T>(T[] items, Random random, IShuffleStrategy shuffleStrategy)
+        private static T[] prv_shuffle<T>(T[] items, Random random, IShuffleStrategy shuffleStrategy)
         {
             if (items == null)
                 throw new ArgumentNullException(nameof(items));
@@ -305,6 +305,8 @@ namespace Blacksmith.Extensions.Randoms
                 throw new ArgumentNullException(nameof(shuffleStrategy));
 
             shuffleStrategy.shuffle(items, random);
+            
+            return items;
         }
 
         private static int prv_generateSeed()
