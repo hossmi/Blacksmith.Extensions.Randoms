@@ -1,3 +1,4 @@
+using Blacksmith.Services;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -113,22 +114,43 @@ namespace Blacksmith.Extensions.Randoms.Tests
         }
 
         [Theory]
-        [InlineData(1000, 0.75d)]
-        public void suffled_array_must_have_swapped_the_major_part_of_its_items(int arraySize, double swappedPercentage)
+        [MemberData(nameof(getTestDataForArrayShuffleMethod))]
+        public void an_array_must_be_completely_unordered_after_shuffle_method_call(IShuffleStrategy shuffleStrategy, int arraySize, double unorderedPercentage)
         {
             int[] array;
+            int unordered;
+            double unorderedProportion;
+            bool arrayIsMessyEnough;
 
-            throw new NotImplementedException();
+            RandomExtensions.CurrentShuffleStrategy = shuffleStrategy;
+
             array = Enumerable
                 .Range(0, arraySize)
-                .ToArray();
+                .ToArray()
+                .shuffle();
 
-            array.shuffle();
+            unordered = 0;
 
             for (int i = 0; i < arraySize; ++i)
-            {
+                if (array[i] != i)
+                    unordered++;
 
-            }
+            unorderedProportion = (double)unordered / (double)arraySize;
+            arrayIsMessyEnough = unorderedProportion >= unorderedPercentage;
+            Assert.True(arrayIsMessyEnough);
+        }
+
+        public static IEnumerable<object[]> getTestDataForArrayShuffleMethod()
+        {
+            IShuffleStrategy shuffleStrategy;
+
+            shuffleStrategy = new RandomIterationsShuffleStrategy();
+
+            yield return new object[] { shuffleStrategy, 1000, 0.50d };
+            yield return new object[] { shuffleStrategy, 1000, 0.75d };
+            yield return new object[] { shuffleStrategy, 1000, 0.85d };
+            yield return new object[] { shuffleStrategy, 1000, 0.95d };
+            yield return new object[] { shuffleStrategy, 1000, 1.00d };
         }
     }
 }
