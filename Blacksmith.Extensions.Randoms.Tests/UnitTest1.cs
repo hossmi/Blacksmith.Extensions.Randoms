@@ -126,8 +126,8 @@ namespace Blacksmith.Extensions.Randoms.Tests
 
             array = Enumerable
                 .Range(0, arraySize)
-                .ToArray()
-                .shuffle();
+                .shuffle()
+                .ToArray();
 
             unordered = 0;
 
