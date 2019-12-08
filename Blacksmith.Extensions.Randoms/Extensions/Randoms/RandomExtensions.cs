@@ -13,7 +13,7 @@ namespace Blacksmith.Extensions.Randoms
         static RandomExtensions()
         {
             currentRandom = new Random(prv_generateSeed());
-            currentShuffleStrategy = new TreeShuffleStrategy();
+            currentShuffleStrategy = new ListShuffleStrategy(currentRandom, 1024);
         }
 
         public static Random CurrentRandom

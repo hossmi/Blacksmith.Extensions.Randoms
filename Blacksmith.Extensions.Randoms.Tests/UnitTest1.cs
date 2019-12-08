@@ -112,19 +112,15 @@ namespace Blacksmith.Extensions.Randoms.Tests
         }
 
         [Theory]
-        [InlineData(1000000, 0.5D)]
-        [InlineData(1000000, 0.75D)]
-        [InlineData(1000000, 0.85D)]
-        [InlineData(1000000, 0.95D)]
-        [InlineData(1000000, 1.0D)]
-        [InlineData(10000000, 0.95D)]
-        [InlineData(100000000, 0.95D)]
-        public void an_array_must_be_completely_unordered_after_shuffle_method_call(int arraySize, double unorderedPercentage)
+        [MemberData(nameof(getShuffleTestData))]
+        public void an_array_must_be_completely_unordered_after_shuffle_method_call(int arraySize, double unorderedPercentage, int bufferSize)
         {
             int[] array;
             int unordered;
             double unorderedProportion;
             bool arrayIsMessyEnough;
+
+            RandomExtensions.CurrentShuffleStrategy = new Algorithms.ListShuffleStrategy(RandomExtensions.CurrentRandom, bufferSize);
 
             array = Enumerable
                 .Range(0, arraySize)
@@ -141,6 +137,19 @@ namespace Blacksmith.Extensions.Randoms.Tests
             arrayIsMessyEnough = unorderedProportion >= unorderedPercentage;
             Assert.Equal(arraySize, array.Length);
             Assert.True(arrayIsMessyEnough);
+        }
+
+        public static IEnumerable<object[]> getShuffleTestData()
+        {
+            yield return new object[] { 100000000, 0.99D, 64 };
+            yield return new object[] { 100000000, 0.99D, 128 };
+            yield return new object[] { 100000000, 0.99D, 256 };
+            yield return new object[] { 100000000, 0.99D, 512 };
+            yield return new object[] { 100000000, 0.99D, 1024 };
+            yield return new object[] { 100000000, 0.99D, 4 * 1024 };
+            yield return new object[] { 100000000, 0.99D, 16 * 1024 };
+            yield return new object[] { 100000000, 0.99D, 32 * 1024 };
+            yield return new object[] { 100000000, 0.99D, 64 * 1024 };
         }
     }
 }
