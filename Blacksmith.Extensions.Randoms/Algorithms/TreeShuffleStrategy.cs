@@ -24,7 +24,7 @@ namespace Blacksmith.Algorithms
             {
                 PrvTreeNode<T> tree;
 
-                tree = new PrvTreeNode<T>(random, enumerator.Current);
+                tree = new PrvTreeNode<T>(4, random, enumerator.Current);
 
                 while (enumerator.MoveNext())
                     tree.add(enumerator.Current);
@@ -37,38 +37,45 @@ namespace Blacksmith.Algorithms
 
         private class PrvTreeNode<T> : IEnumerable<T>
         {
+            private readonly int childNodeSize;
+            private readonly PrvTreeNode<T>[] childs;
             private readonly Random random;
             private readonly T value;
-            private PrvTreeNode<T> leftChild;
-            private PrvTreeNode<T> rightChild;
 
-            public PrvTreeNode(Random random, T value)
+            public PrvTreeNode(int childNodeSize, Random random, T value)
             {
+                bool childNodeSizeIsOdd;
+
+                childNodeSizeIsOdd = childNodeSize % 2 != 0;
+
+                if (childNodeSizeIsOdd)
+                    throw new ArgumentException($"The {nameof(childNodeSize)} parameter must be odd number greater or equal than 2.", nameof(childNodeSize));
+
                 this.random = random;
                 this.value = value;
-                this.leftChild = null;
-                this.rightChild = null;
+                this.childNodeSize = childNodeSize;
+                this.childs = new PrvTreeNode<T>[this.childNodeSize];
             }
 
             public void add(T item)
             {
-                bool addToLeftChild;
+                int selectedChild;
+                int[] freePositions;
 
-                addToLeftChild = this.random.isTrue();
+                freePositions = this.childs
+                    .Select((child, index) => child == null ? index : -1)
+                    .Where(index => index > -1)
+                    .ToArray();
 
-                if (addToLeftChild)
+                if(freePositions.Length > 0)
                 {
-                    if (this.leftChild == null)
-                        this.leftChild = new PrvTreeNode<T>(this.random, item);
-                    else
-                        this.leftChild.add(item);
+                    selectedChild = freePositions.peekRandom(this.random);
+                    this.childs[selectedChild] = new PrvTreeNode<T>(this.childNodeSize, this.random, item);
                 }
                 else
                 {
-                    if (this.rightChild == null)
-                        this.rightChild = new PrvTreeNode<T>(this.random, item);
-                    else
-                        this.rightChild.add(item);
+                    selectedChild = this.random.Next(this.childNodeSize);
+                    this.childs[selectedChild].add(item);
                 }
             }
 
@@ -89,15 +96,21 @@ namespace Blacksmith.Algorithms
 
             private IEnumerable<T> prv_enumerate()
             {
-                if(this.leftChild != null)
-                    foreach (T item in this.leftChild)
-                        yield return item;
+                for (int i = 0; i < this.childNodeSize / 2; i++)
+                {
+                    if (this.childs[i] != null)
+                        foreach (T item in this.childs[i])
+                            yield return item;
+                }
 
                 yield return this.value;
 
-                if (this.rightChild != null)
-                    foreach (T item in this.rightChild)
-                        yield return item;
+                for (int i = this.childNodeSize / 2; i < this.childNodeSize; i++)
+                {
+                    if (this.childs[i] != null)
+                        foreach (T item in this.childs[i])
+                            yield return item;
+                }
             }
         }
 
