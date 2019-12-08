@@ -1,3 +1,4 @@
+using Blacksmith.Extensions.ShuffledCollections;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,13 +7,12 @@ using Xunit.Abstractions;
 
 namespace Blacksmith.Extensions.Randoms.Tests
 {
-    public class UnitTest1
+    public class ShuffleExtensionTests
     {
         private static readonly double PRECISION;
-
         private readonly ITestOutputHelper output;
 
-        static UnitTest1()
+        static ShuffleExtensionTests()
         {
 #if DEBUG
             PRECISION = 0.001;
@@ -21,51 +21,20 @@ namespace Blacksmith.Extensions.Randoms.Tests
 #endif
         }
 
-        public UnitTest1(ITestOutputHelper output)
+        public ShuffleExtensionTests(ITestOutputHelper output)
         {
             this.output = output;
         }
 
         [Theory]
-        [InlineData(0.0, 1000000000L)]
-        [InlineData(0.236, 1000000000L)]
-        [InlineData(0.382, 1000000000L)]
-        [InlineData(0.5, 1000000000L)]
-        [InlineData(0.618, 1000000000L)]
-        [InlineData(0.762, 1000000000L)]
-        [InlineData(1, 1000000000L)]
-        public void isTrue_returns_same_amount_of_trues_and_falses(double truePercentage, long iterations)
-        {
-            bool proportionIsCloseToTruePercentage;
-            double proportion;
-            Random r;
-            long trues, falses;
-
-            r = RandomExtensions.CurrentRandom;
-            trues = 0;
-            falses = 0;
-
-            for (long i = 0; i < iterations; ++i)
-            {
-                if (r.isTrue(truePercentage))
-                    ++trues;
-                else
-                    ++falses;
-            }
-
-            proportion = (double)trues / ((double)falses + (double)trues);
-            this.output.WriteLine($"Proportion {proportion,-20}, Expected {truePercentage}");
-
-            proportion = proportion - truePercentage;
-            proportion = Math.Abs(proportion);
-            proportionIsCloseToTruePercentage = proportion <= PRECISION;
-
-            Assert.True(proportionIsCloseToTruePercentage);
-        }
-
-        [Theory]
-        [InlineData(1000000000L)]
-        public void next_for_randoms_returns_each_element_equally_after_1_minute_of_execution(long iterations)
+        [InlineData(1000L)]
+        [InlineData(10 * 1000L)]
+        [InlineData(100 * 1000L)]
+        [InlineData(1000 * 1000L)]
+        [InlineData(10 * 1000L * 1000L)]
+        [InlineData(100 * 1000L * 1000L)]
+        [InlineData(1000 * 1000L * 1000L)]
+        public void peekRandom_returns_each_element_in_same_proportion(long iterations)
         {
             bool allDeviationsAreCloseToZero;
             string[] names;
@@ -113,14 +82,14 @@ namespace Blacksmith.Extensions.Randoms.Tests
 
         [Theory]
         [MemberData(nameof(getShuffleTestData))]
-        public void an_array_must_be_completely_unordered_after_shuffle_method_call(int arraySize, double unorderedPercentage, int bufferSize)
+        public void shuffle_return_completely_unordered_collections(int arraySize, double unorderedPercentage, int bufferSize)
         {
             int[] array;
             int unordered;
             double unorderedProportion;
             bool arrayIsMessyEnough;
 
-            RandomExtensions.CurrentShuffleStrategy = new Algorithms.ListShuffleStrategy(RandomExtensions.CurrentRandom, bufferSize);
+            ShuffleExtensions.CurrentShuffleStrategy = new Algorithms.ListShuffleStrategy(bufferSize);
 
             array = Enumerable
                 .Range(0, arraySize)

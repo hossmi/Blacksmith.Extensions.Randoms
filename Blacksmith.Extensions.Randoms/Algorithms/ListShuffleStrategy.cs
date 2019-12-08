@@ -1,5 +1,6 @@
 ﻿using Blacksmith.Exceptions;
 using Blacksmith.Extensions.Randoms;
+using Blacksmith.Extensions.ShuffledCollections;
 using System;
 using System.Collections.Generic;
 
@@ -7,17 +8,13 @@ namespace Blacksmith.Algorithms
 {
     public class ListShuffleStrategy : IShuffleStrategy
     {
-        private readonly Random random;
         private int bufferSize;
 
-        public ListShuffleStrategy(Random random, int bufferSize)
+        public ListShuffleStrategy(int bufferSize)
         {
             if (bufferSize < 2)
                 throw new TooSmallShuffleBufferSize(bufferSize);
-            if (random == null)
-                throw new ArgumentNullException(nameof(random));
 
-            this.random = random;
             this.bufferSize = bufferSize;
         }
 
@@ -41,7 +38,7 @@ namespace Blacksmith.Algorithms
                     T item;
 
                     item = enumerator.Current;
-                    buffer.pushAtRandom(item);
+                    buffer.pushAtRandomPosition(item);
                 }
                 else
                     break;
@@ -53,14 +50,14 @@ namespace Blacksmith.Algorithms
                 int randomIndex;
 
                 item = enumerator.Current;
-                randomIndex = this.random.Next(0, this.bufferSize);
+                randomIndex = random.Next(0, this.bufferSize);
                 yield return buffer[randomIndex];
 
                 buffer[randomIndex] = item;
             }
 
             while (buffer.Count > 0)
-                yield return buffer.popFromRandom<T>(this.random);
+                yield return buffer.popFromRandomPosition<T>(random);
         }
     }
 }
