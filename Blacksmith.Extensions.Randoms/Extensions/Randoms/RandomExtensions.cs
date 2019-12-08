@@ -10,6 +10,9 @@ namespace Blacksmith.Extensions.Randoms
             TimeSpan delta;
             double randomSeconds;
 
+            if (random == null)
+                throw new ArgumentNullException(nameof(random));
+
             delta = to - from;
 
             if (delta.Ticks < 0)
@@ -21,8 +24,39 @@ namespace Blacksmith.Extensions.Randoms
             return result;
         }
 
+        public static TimeSpan nextTimeSpan(this Random random, TimeSpan max)
+        {
+            return nextTimeSpan(random, TimeSpan.Zero, max);
+        }
+
+        public static TimeSpan nextTimeSpan(this Random random, TimeSpan min, TimeSpan max)
+        {
+            TimeSpan result;
+            TimeSpan delta;
+            double randomSeconds;
+
+            if (random == null)
+                throw new ArgumentNullException(nameof(random));
+
+            delta = max - min;
+
+            if (delta.Ticks < 0)
+                throw new ArgumentOutOfRangeException($"The '{nameof(max)}' parameter must be grater than '{nameof(min)}' parameter.");
+
+            randomSeconds = random.nextDouble(delta.TotalSeconds);
+            result = min + TimeSpan.FromSeconds(randomSeconds);
+
+            return result;
+        }
+
         public static bool isTrue(this Random random, double threshold = 0.5d)
         {
+            if (random == null)
+                throw new ArgumentNullException(nameof(random));
+
+            if (threshold <= 0.0 || 1.0 <= threshold)
+                throw new ArgumentOutOfRangeException(nameof(threshold));
+
             return random.NextDouble() >= (1.0 - threshold);
         }
 
@@ -34,6 +68,9 @@ namespace Blacksmith.Extensions.Randoms
         public static double nextDouble(this Random random, double min, double max)
         {
             double range;
+
+            if (random == null)
+                throw new ArgumentNullException(nameof(random));
 
             if (max <= min)
                 throw new ArgumentOutOfRangeException($"The '{nameof(max)}' parameter must be grater than '{nameof(min)}' parameter.");
@@ -50,6 +87,9 @@ namespace Blacksmith.Extensions.Randoms
         public static decimal nextDecimal(this Random random, decimal min, decimal max)
         {
             decimal range;
+
+            if (random == null)
+                throw new ArgumentNullException(nameof(random));
 
             if (max <= min)
                 throw new ArgumentOutOfRangeException($"The '{nameof(max)}' parameter must be grater than '{nameof(min)}' parameter.");

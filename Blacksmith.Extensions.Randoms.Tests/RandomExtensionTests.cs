@@ -9,6 +9,7 @@ namespace Blacksmith.Extensions.Randoms.Tests
     public class RandomExtensionTests
     {
         private static readonly double PRECISION;
+        private readonly Random random;
         private readonly ITestOutputHelper output;
 
         static RandomExtensionTests()
@@ -22,10 +23,17 @@ namespace Blacksmith.Extensions.Randoms.Tests
 
         public RandomExtensionTests(ITestOutputHelper output)
         {
+            this.random = ShuffleExtensions.CurrentRandom;
             this.output = output;
         }
 
         [Theory]
+        [InlineData(0.999, 1000)]
+        [InlineData(0.999, 10 * 1000L)]
+        [InlineData(0.999, 100 * 1000L)]
+        [InlineData(0.999, 1000 * 1000L)]
+        [InlineData(0.999, 10 * 1000L * 1000L)]
+        [InlineData(0.999, 100 * 1000L * 1000L)]
         [InlineData(0.999, 1000 * 1000L * 1000L)]
         public void isTrue_returns_same_amount_of_trues_and_falses(double truePercentage, long iterations)
         {
@@ -61,7 +69,8 @@ namespace Blacksmith.Extensions.Randoms.Tests
         [InlineData(0.0, 0.000001, 1000)]
         public void nextDouble_returns_numbers_in_expected_range(double min, double max, int iterations)
         {
-            throw new NotImplementedException();
+            for (int i = 0; i < iterations; i++)
+                Assert.InRange<double>(this.random.nextDouble(min, max), min, max);
         }
 
         [Theory]
@@ -69,7 +78,7 @@ namespace Blacksmith.Extensions.Randoms.Tests
         [InlineData(0.0, 0.0)]
         public void nextDouble_throws_exception_on_invalid_range(double min, double max)
         {
-            throw new NotImplementedException();
+            Assert.Throws<ArgumentOutOfRangeException>(() => this.random.nextDouble(min, max));
         }
 
         [Theory]
@@ -77,63 +86,71 @@ namespace Blacksmith.Extensions.Randoms.Tests
         [InlineData(0.0, 0.000001, 1000)]
         public void nextDecimal_returns_numbers_in_expected_range(decimal min, decimal max, int iterations)
         {
-            throw new NotImplementedException();
+            for (int i = 0; i < iterations; i++)
+                Assert.InRange<decimal>(this.random.nextDecimal(min, max), min, max);
         }
 
         [Theory]
         [InlineData(10.0, -10.0)]
         [InlineData(0.0, 0.0)]
-        public void nextDecimal_throws_exception_on_invalid_range(double min, double max)
+        public void nextDecimal_throws_exception_on_invalid_range(decimal min, decimal max)
         {
-            throw new NotImplementedException();
+            Assert.Throws<ArgumentOutOfRangeException>(() => this.random.nextDecimal(min, max));
         }
 
         [Theory]
         [MemberData(nameof(getNextDateValidData))]
         public void nextDate_returns_dates_in_expected_range(DateTime min, DateTime max, int iterations)
         {
-            throw new NotImplementedException();
+            for (int i = 0; i < iterations; i++)
+                Assert.InRange<DateTime>(this.random.nextDate(min, max), min, max);
         }
 
         public static IEnumerable<object[]> getNextDateValidData()
         {
-            throw new NotImplementedException();
+            yield return new object[] { DateTime.UtcNow.AddDays(-10), DateTime.UtcNow.AddDays(10), 1000 };
+            yield return new object[] { new DateTime(2001, 1, 1), new DateTime(2010, 12, 31), 1000 };
         }
 
         [Theory]
         [MemberData(nameof(getNextDateInvalidData))]
         public void nextDate_throws_exception_on_invalid_range(DateTime min, DateTime max)
         {
-            throw new NotImplementedException();
+            Assert.Throws<ArgumentOutOfRangeException>(() => this.random.nextDate(min, max));
         }
 
         public static IEnumerable<object[]> getNextDateInvalidData()
         {
-            throw new NotImplementedException();
+            yield return new object[] { DateTime.UtcNow.AddDays(10), DateTime.UtcNow.AddDays(-10) };
+            yield return new object[] { new DateTime(2001, 1, 1), new DateTime(2001, 1, 1) };
         }
 
         [Theory]
         [MemberData(nameof(getNextDateValidData))]
         public void nextTimeSpan_returns_values_in_expected_range(TimeSpan min, TimeSpan max, int iterations)
         {
-            throw new NotImplementedException();
+            for (int i = 0; i < iterations; i++)
+                Assert.InRange<TimeSpan>(this.random.nextTimeSpan(min, max), min, max);
         }
 
         public static IEnumerable<object[]> getNextTimespanValidData()
         {
-            throw new NotImplementedException();
+            yield return new object[] { TimeSpan.FromSeconds(34), TimeSpan.FromSeconds(55), 1000 };
+            yield return new object[] { TimeSpan.Zero, TimeSpan.FromDays(55), 1000 };
         }
 
         [Theory]
         [MemberData(nameof(getNextDateInvalidData))]
         public void nextTimeSpan_throws_exception_on_invalid_range(TimeSpan min, TimeSpan max)
         {
-            throw new NotImplementedException();
+            Assert.Throws<ArgumentOutOfRangeException>(() => this.random.nextTimeSpan(min, max));
         }
 
         public static IEnumerable<object[]> getNextTimespanInvalidData()
         {
-            throw new NotImplementedException();
+            yield return new object[] { TimeSpan.FromSeconds(55), TimeSpan.FromSeconds(34) };
+            yield return new object[] { TimeSpan.Zero, TimeSpan.Zero };
+            yield return new object[] { TimeSpan.FromDays(1), TimeSpan.FromDays(1) };
         }
     }
 }
