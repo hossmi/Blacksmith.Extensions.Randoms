@@ -8,18 +8,9 @@ namespace Blacksmith.Extensions.Randoms.Tests
 {
     public class RandomExtensionTests
     {
-        private static readonly double PRECISION;
+        private const double PRECISION = 0.01D;
         private readonly Random random;
         private readonly ITestOutputHelper output;
-
-        static RandomExtensionTests()
-        {
-#if DEBUG
-            PRECISION = 0.001;
-#else
-            PRECISION = 0.0001;
-#endif
-        }
 
         public RandomExtensionTests(ITestOutputHelper output)
         {
@@ -28,48 +19,77 @@ namespace Blacksmith.Extensions.Randoms.Tests
         }
 
         [Theory]
-        [InlineData(0.999, 1000)]
-        [InlineData(0.999, 10 * 1000L)]
-        [InlineData(0.999, 100 * 1000L)]
-        [InlineData(0.999, 1000 * 1000L)]
-        [InlineData(0.999, 10 * 1000L * 1000L)]
-        [InlineData(0.999, 100 * 1000L * 1000L)]
-        [InlineData(0.999, 1000 * 1000L * 1000L)]
-        public void isTrue_returns_same_amount_of_trues_and_falses(double truePercentage, long iterations)
+        [InlineData(1.0, 100 * 1000 * 1000L)]
+        [InlineData(12.5, 100 * 1000 * 1000L)]
+        [InlineData(25.0, 100 * 1000 * 1000L)]
+        [InlineData(50.0, 100 * 1000 * 1000L)]
+        [InlineData(75.0, 100 * 1000 * 1000L)]
+        [InlineData(99.9, 100 * 1000 * 1000L)]
+        public void trueAlmost_works_as_expected(double percentage, long iterations)
         {
-            bool proportionIsCloseToTruePercentage;
-            double proportion;
             Random r;
-            long trues, falses;
+            long trues;
+            double proportion;
+            bool proportionIsCloseToPercentage;
 
             r = ShuffleExtensions.CurrentRandom;
             trues = 0;
-            falses = 0;
 
-            for (long i = 0; i < iterations; ++i)
+            for (long i = 0; i < iterations; i++)
             {
-                if (r.isTrue(truePercentage))
-                    ++trues;
-                else
-                    ++falses;
+                if (true.almostAt(percentage))
+                    trues++;
             }
 
-            proportion = (double)trues / ((double)falses + (double)trues);
-            this.output.WriteLine($"Proportion {proportion,-20}, Expected {truePercentage}");
+            proportion = (double)trues / (double)iterations * 100.0;
+            this.output.WriteLine($"Proportion {proportion,-20}, Expected {percentage}");
 
-            proportion = proportion - truePercentage;
+            proportion = proportion - percentage;
             proportion = Math.Abs(proportion);
-            proportionIsCloseToTruePercentage = proportion <= PRECISION;
+            proportionIsCloseToPercentage = proportion <= PRECISION;
 
-            Assert.True(proportionIsCloseToTruePercentage);
+            Assert.True(proportionIsCloseToPercentage);
+        }
+
+        [Theory]
+        [InlineData(1.0, 100 * 1000 * 1000L)]
+        [InlineData(12.5, 100 * 1000 * 1000L)]
+        [InlineData(25.0, 100 * 1000 * 1000L)]
+        [InlineData(50.0, 100 * 1000 * 1000L)]
+        [InlineData(75.0, 100 * 1000 * 1000L)]
+        [InlineData(99.9, 100 * 1000 * 1000L)]
+        public void falseAlmost_works_as_expected(double percentage, long iterations)
+        {
+            Random r;
+            long falses;
+            double proportion;
+            bool proportionIsCloseToPercentage;
+
+            r = ShuffleExtensions.CurrentRandom;
+            falses = 0;
+
+            for (long i = 0; i < iterations; i++)
+            {
+                if (false.almostAt(percentage) == false)
+                    falses++;
+            }
+
+            proportion = (double)falses / (double)iterations * 100.0;
+            this.output.WriteLine($"Proportion {proportion,-20}, Expected {percentage}");
+
+            proportion = proportion - percentage;
+            proportion = Math.Abs(proportion);
+            proportionIsCloseToPercentage = proportion <= PRECISION;
+
+            Assert.True(proportionIsCloseToPercentage);
         }
 
         [Theory]
         [InlineData(-10.0, 10, 1000)]
         [InlineData(0.0, 0.000001, 1000)]
-        public void nextDouble_returns_numbers_in_expected_range(double min, double max, int iterations)
+        public void nextDouble_returns_numbers_in_expected_range(double min, double max, long iterations)
         {
-            for (int i = 0; i < iterations; i++)
+            for (long i = 0; i < iterations; i++)
                 Assert.InRange<double>(this.random.nextDouble(min, max), min, max);
         }
 
@@ -84,9 +104,9 @@ namespace Blacksmith.Extensions.Randoms.Tests
         [Theory]
         [InlineData(-10.0, 10, 1000)]
         [InlineData(0.0, 0.000001, 1000)]
-        public void nextDecimal_returns_numbers_in_expected_range(decimal min, decimal max, int iterations)
+        public void nextDecimal_returns_numbers_in_expected_range(decimal min, decimal max, long iterations)
         {
-            for (int i = 0; i < iterations; i++)
+            for (long i = 0; i < iterations; i++)
                 Assert.InRange<decimal>(this.random.nextDecimal(min, max), min, max);
         }
 
@@ -100,9 +120,9 @@ namespace Blacksmith.Extensions.Randoms.Tests
 
         [Theory]
         [MemberData(nameof(getNextDateValidData))]
-        public void nextDate_returns_dates_in_expected_range(DateTime min, DateTime max, int iterations)
+        public void nextDate_returns_dates_in_expected_range(DateTime min, DateTime max, long iterations)
         {
-            for (int i = 0; i < iterations; i++)
+            for (long i = 0; i < iterations; i++)
                 Assert.InRange<DateTime>(this.random.nextDate(min, max), min, max);
         }
 
@@ -126,10 +146,10 @@ namespace Blacksmith.Extensions.Randoms.Tests
         }
 
         [Theory]
-        [MemberData(nameof(getNextDateValidData))]
-        public void nextTimeSpan_returns_values_in_expected_range(TimeSpan min, TimeSpan max, int iterations)
+        [MemberData(nameof(getNextTimespanValidData))]
+        public void nextTimeSpan_returns_values_in_expected_range(TimeSpan min, TimeSpan max, long iterations)
         {
-            for (int i = 0; i < iterations; i++)
+            for (long i = 0; i < iterations; i++)
                 Assert.InRange<TimeSpan>(this.random.nextTimeSpan(min, max), min, max);
         }
 
@@ -140,7 +160,7 @@ namespace Blacksmith.Extensions.Randoms.Tests
         }
 
         [Theory]
-        [MemberData(nameof(getNextDateInvalidData))]
+        [MemberData(nameof(getNextTimespanInvalidData))]
         public void nextTimeSpan_throws_exception_on_invalid_range(TimeSpan min, TimeSpan max)
         {
             Assert.Throws<ArgumentOutOfRangeException>(() => this.random.nextTimeSpan(min, max));

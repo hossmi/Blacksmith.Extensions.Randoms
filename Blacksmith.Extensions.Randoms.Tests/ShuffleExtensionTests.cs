@@ -9,17 +9,8 @@ namespace Blacksmith.Extensions.Randoms.Tests
 {
     public class ShuffleExtensionTests
     {
-        private static readonly double PRECISION;
+        private const double PRECISION = 0.01D;
         private readonly ITestOutputHelper output;
-
-        static ShuffleExtensionTests()
-        {
-#if DEBUG
-            PRECISION = 0.001;
-#else
-            PRECISION = 0.0001;
-#endif
-        }
 
         public ShuffleExtensionTests(ITestOutputHelper output)
         {
@@ -27,13 +18,7 @@ namespace Blacksmith.Extensions.Randoms.Tests
         }
 
         [Theory]
-        [InlineData(1000L)]
-        [InlineData(10 * 1000L)]
-        [InlineData(100 * 1000L)]
-        [InlineData(1000 * 1000L)]
         [InlineData(10 * 1000L * 1000L)]
-        [InlineData(100 * 1000L * 1000L)]
-        [InlineData(1000 * 1000L * 1000L)]
         public void peekRandom_returns_each_element_in_same_proportion(long iterations)
         {
             bool allDeviationsAreCloseToZero;

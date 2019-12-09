@@ -15,7 +15,7 @@ namespace Blacksmith.Extensions.Randoms
 
             delta = to - from;
 
-            if (delta.Ticks < 0)
+            if (delta.Ticks <= 0)
                 throw new ArgumentOutOfRangeException($"The '{nameof(to)}' parameter must be grater than '{nameof(from)}' parameter.");
 
             randomSeconds = random.NextDouble() * delta.TotalSeconds;
@@ -40,24 +40,13 @@ namespace Blacksmith.Extensions.Randoms
 
             delta = max - min;
 
-            if (delta.Ticks < 0)
+            if (delta.Ticks <= 0)
                 throw new ArgumentOutOfRangeException($"The '{nameof(max)}' parameter must be grater than '{nameof(min)}' parameter.");
 
             randomSeconds = random.nextDouble(delta.TotalSeconds);
             result = min + TimeSpan.FromSeconds(randomSeconds);
 
             return result;
-        }
-
-        public static bool isTrue(this Random random, double threshold = 0.5d)
-        {
-            if (random == null)
-                throw new ArgumentNullException(nameof(random));
-
-            if (threshold <= 0.0 || 1.0 <= threshold)
-                throw new ArgumentOutOfRangeException(nameof(threshold));
-
-            return random.NextDouble() >= (1.0 - threshold);
         }
 
         public static double nextDouble(this Random random, double max)
