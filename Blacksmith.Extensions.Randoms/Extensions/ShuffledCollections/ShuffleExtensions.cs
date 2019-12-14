@@ -29,7 +29,7 @@ namespace Blacksmith.Extensions.ShuffledCollections
             set => currentShuffleStrategy = value ?? throw new ArgumentNullException(nameof(CurrentShuffleStrategy));
         }
 
-        public static bool almostAt(this bool value, double percentage = 50.0, Random random = null)
+        public static bool at(this bool value, double percentage = 50.0, Random random = null)
         {
             bool mustReturnValue;
 

@@ -8,36 +8,35 @@ namespace Blacksmith.Extensions.Randoms.Tests
 {
     public class RandomExtensionTests
     {
-        private const double PRECISION = 0.01D;
+        private const double PRECISION = 1D;
         private readonly Random random;
         private readonly ITestOutputHelper output;
 
         public RandomExtensionTests(ITestOutputHelper output)
         {
+            ShuffleExtensions.CurrentRandom = new Random(0);
             this.random = ShuffleExtensions.CurrentRandom;
             this.output = output;
         }
 
         [Theory]
-        [InlineData(1.0, 100 * 1000 * 1000L)]
-        [InlineData(12.5, 100 * 1000 * 1000L)]
-        [InlineData(25.0, 100 * 1000 * 1000L)]
-        [InlineData(50.0, 100 * 1000 * 1000L)]
-        [InlineData(75.0, 100 * 1000 * 1000L)]
-        [InlineData(99.9, 100 * 1000 * 1000L)]
+        [InlineData(1.0,  1 * 1000 * 1000L)]
+        [InlineData(12.5, 1 * 1000 * 1000L)]
+        [InlineData(25.0, 1 * 1000 * 1000L)]
+        [InlineData(50.0, 1 * 1000 * 1000L)]
+        [InlineData(75.0, 1 * 1000 * 1000L)]
+        [InlineData(99.9, 1 * 1000 * 1000L)]
         public void trueAlmost_works_as_expected(double percentage, long iterations)
         {
-            Random r;
             long trues;
             double proportion;
             bool proportionIsCloseToPercentage;
 
-            r = ShuffleExtensions.CurrentRandom;
             trues = 0;
 
             for (long i = 0; i < iterations; i++)
             {
-                if (true.almostAt(percentage))
+                if (true.at(percentage))
                     trues++;
             }
 
@@ -52,25 +51,23 @@ namespace Blacksmith.Extensions.Randoms.Tests
         }
 
         [Theory]
-        [InlineData(1.0, 100 * 1000 * 1000L)]
-        [InlineData(12.5, 100 * 1000 * 1000L)]
-        [InlineData(25.0, 100 * 1000 * 1000L)]
-        [InlineData(50.0, 100 * 1000 * 1000L)]
-        [InlineData(75.0, 100 * 1000 * 1000L)]
-        [InlineData(99.9, 100 * 1000 * 1000L)]
+        [InlineData(1.0,  1 * 1000 * 1000L)]
+        [InlineData(12.5, 1 * 1000 * 1000L)]
+        [InlineData(25.0, 1 * 1000 * 1000L)]
+        [InlineData(50.0, 1 * 1000 * 1000L)]
+        [InlineData(75.0, 1 * 1000 * 1000L)]
+        [InlineData(99.9, 1 * 1000 * 1000L)]
         public void falseAlmost_works_as_expected(double percentage, long iterations)
         {
-            Random r;
             long falses;
             double proportion;
             bool proportionIsCloseToPercentage;
 
-            r = ShuffleExtensions.CurrentRandom;
             falses = 0;
 
             for (long i = 0; i < iterations; i++)
             {
-                if (false.almostAt(percentage) == false)
+                if (false.at(percentage) == false)
                     falses++;
             }
 
@@ -90,7 +87,7 @@ namespace Blacksmith.Extensions.Randoms.Tests
         public void nextDouble_returns_numbers_in_expected_range(double min, double max, long iterations)
         {
             for (long i = 0; i < iterations; i++)
-                Assert.InRange<double>(this.random.nextDouble(min, max), min, max);
+                Assert.InRange(this.random.nextDouble(min, max), min, max);
         }
 
         [Theory]
@@ -107,7 +104,7 @@ namespace Blacksmith.Extensions.Randoms.Tests
         public void nextDecimal_returns_numbers_in_expected_range(decimal min, decimal max, long iterations)
         {
             for (long i = 0; i < iterations; i++)
-                Assert.InRange<decimal>(this.random.nextDecimal(min, max), min, max);
+                Assert.InRange(this.random.nextDecimal(min, max), min, max);
         }
 
         [Theory]
@@ -123,7 +120,7 @@ namespace Blacksmith.Extensions.Randoms.Tests
         public void nextDate_returns_dates_in_expected_range(DateTime min, DateTime max, long iterations)
         {
             for (long i = 0; i < iterations; i++)
-                Assert.InRange<DateTime>(this.random.nextDate(min, max), min, max);
+                Assert.InRange(this.random.nextDate(min, max), min, max);
         }
 
         public static IEnumerable<object[]> getNextDateValidData()
@@ -150,7 +147,7 @@ namespace Blacksmith.Extensions.Randoms.Tests
         public void nextTimeSpan_returns_values_in_expected_range(TimeSpan min, TimeSpan max, long iterations)
         {
             for (long i = 0; i < iterations; i++)
-                Assert.InRange<TimeSpan>(this.random.nextTimeSpan(min, max), min, max);
+                Assert.InRange(this.random.nextTimeSpan(min, max), min, max);
         }
 
         public static IEnumerable<object[]> getNextTimespanValidData()
