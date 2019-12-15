@@ -4,6 +4,22 @@ namespace Blacksmith.Extensions.Randoms
 {
     public static class RandomExtensions
     {
+        public static bool at(this bool value, double percentage, Random random = null)
+        {
+            bool mustReturnValue;
+
+            if (percentage <= 0 || 100 <= percentage)
+                throw new ArgumentOutOfRangeException(nameof(percentage), $"The {nameof(percentage)} parameter must be between 0.0 and 100.0 excluding both.");
+
+            random = random ?? ShuffledCollections.ShuffleExtensions.CurrentRandom;
+            mustReturnValue = random.NextDouble() * 100.0 <= percentage;
+
+            if (mustReturnValue)
+                return value;
+            else
+                return !value;
+        }
+
         public static DateTime nextDate(this Random random, DateTime from, DateTime to)
         {
             DateTime result;

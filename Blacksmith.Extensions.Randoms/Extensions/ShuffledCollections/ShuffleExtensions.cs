@@ -29,22 +29,6 @@ namespace Blacksmith.Extensions.ShuffledCollections
             set => currentShuffleStrategy = value ?? throw new ArgumentNullException(nameof(CurrentShuffleStrategy));
         }
 
-        public static bool at(this bool value, double percentage = 50.0, Random random = null)
-        {
-            bool mustReturnValue;
-
-            if (percentage <= 0 || 100 <= percentage)
-                throw new ArgumentOutOfRangeException(nameof(percentage), $"The {nameof(percentage)} parameter must be between 0.0 and 100.0 excluding both.");
-
-            random = random ?? currentRandom;
-            mustReturnValue = random.NextDouble() * 100.0 <= percentage;
-
-            if (mustReturnValue)
-                return value;
-            else
-                return !value;
-        }
-
         public static T peekRandom<T>(this IReadOnlyList<T> items, Random random)
         {
             int index;
