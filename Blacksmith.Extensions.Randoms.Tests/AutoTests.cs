@@ -1,6 +1,6 @@
 ﻿using AutoFixture.Xunit2;
 using Xunit;
-using Blacksmith.Extensions.Randoms;
+using Blacksmith.Extensions.RandomNumbers;
 using FluentAssertions;
 using System;
 
@@ -40,70 +40,77 @@ namespace Blacksmith.Extensions.Randoms.Tests
 
         [Theory]
         [AutoData]
-        public void nextDate_returns_value_in_expected_range(DateTime from, TimeSpan to)
+        public void nextDate_returns_value_in_expected_range(DateTime max, TimeSpan delta)
         {
-            Random r;
-            DateTime randomValue;
+            DateTime min;
 
-            r = new Random();
+            min = max - delta;
 
-            randomValue = r.nextDate(from, from + to);
-
-            randomValue.Should()
-                .BeAfter(from - new TimeSpan(1))
+            max.getRandom(min)
+                .Should()
+                .BeOnOrAfter(min)
                 .And
-                .BeBefore(from + to);
+                .BeOnOrBefore(max);
         }
 
         [Theory]
         [AutoData]
-        public void nextTimespan_returns_value_in_expected_range(TimeSpan from, TimeSpan to)
+        public void nextTimespan_returns_value_in_expected_range(TimeSpan max)
         {
-            Random r;
-            TimeSpan randomValue;
+            TimeSpan min;
 
-            r = new Random();
+            min = max.getRandom();
 
-            randomValue = r.nextTimeSpan(from, from + to);
-
-            randomValue.Should()
-                .BeGreaterOrEqualTo(from)
+            min.Should()
+                .BeGreaterOrEqualTo(TimeSpan.Zero)
                 .And
-                .BeLessOrEqualTo(from + to);
+                .BeLessOrEqualTo(max);
+
+            max.getRandom(min)
+                .Should()
+                .BeGreaterOrEqualTo(min)
+                .And
+                .BeLessOrEqualTo(max);
         }
 
         [Theory]
         [AutoData]
-        public void nextDecimal_returns_value_in_expected_range(decimal from, decimal to)
+        public void nextDecimal_returns_value_in_expected_range(decimal max)
         {
-            Random r;
-            decimal randomValue;
+            decimal min;
 
-            r = new Random();
+            min = max.getRandom();
 
-            randomValue = r.nextDecimal(from, from + to);
-
-            randomValue.Should()
-                .BeGreaterOrEqualTo(from)
+            min.Should()
+                .BeGreaterOrEqualTo(0m)
                 .And
-                .BeLessOrEqualTo(from + to);
+                .BeLessOrEqualTo(max);
+
+            max.getRandom(min)
+                .Should()
+                .BeGreaterOrEqualTo(min)
+                .And
+                .BeLessOrEqualTo(max);
         }
 
         [Theory]
         [AutoData]
-        public void nextDouble_returns_value_in_expected_range(double from, double to)
+        public void nextDouble_returns_value_in_expected_range(double max)
         {
-            Random r;
-            double randomValue;
+            double min;
 
-            r = new Random();
+            min = max.getRandom();
 
-            randomValue = r.nextDouble(from, from + to);
-
-            randomValue.Should()
-                .BeGreaterOrEqualTo(from)
+            min.Should()
+                .BeGreaterOrEqualTo(0d)
                 .And
-                .BeLessOrEqualTo(from + to);
+                .BeLessOrEqualTo(max);
+
+            max.getRandom(min)
+                .Should()
+                .BeGreaterOrEqualTo(min)
+                .And
+                .BeLessOrEqualTo(max);
         }
     }
 }

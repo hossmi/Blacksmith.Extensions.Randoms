@@ -1,6 +1,5 @@
 ﻿using Blacksmith.Exceptions;
-using Blacksmith.Extensions.Randoms;
-using Blacksmith.Extensions.ShuffledCollections;
+using Blacksmith.Extensions.ShuffledCountableCollections;
 using System;
 using System.Collections.Generic;
 

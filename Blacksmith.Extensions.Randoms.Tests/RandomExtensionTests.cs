@@ -1,5 +1,4 @@
-﻿using Blacksmith.Extensions.ShuffledCollections;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Xunit;
 using Xunit.Abstractions;
@@ -14,71 +13,9 @@ namespace Blacksmith.Extensions.Randoms.Tests
 
         public RandomExtensionTests(ITestOutputHelper output)
         {
-            ShuffleExtensions.CurrentRandom = new Random(0);
-            this.random = ShuffleExtensions.CurrentRandom;
+            RandomNumbers.RandomNumberExtensions.CurrentRandom = new Random(0);
+            this.random = RandomNumbers.RandomNumberExtensions.CurrentRandom;
             this.output = output;
-        }
-
-        [Theory]
-        [InlineData(1.0,  1 * 1000 * 1000L)]
-        [InlineData(12.5, 1 * 1000 * 1000L)]
-        [InlineData(25.0, 1 * 1000 * 1000L)]
-        [InlineData(50.0, 1 * 1000 * 1000L)]
-        [InlineData(75.0, 1 * 1000 * 1000L)]
-        [InlineData(99.9, 1 * 1000 * 1000L)]
-        public void trueAlmost_works_as_expected(double percentage, long iterations)
-        {
-            long trues;
-            double proportion;
-            bool proportionIsCloseToPercentage;
-
-            trues = 0;
-
-            for (long i = 0; i < iterations; i++)
-            {
-                if (true.at(percentage))
-                    trues++;
-            }
-
-            proportion = (double)trues / (double)iterations * 100.0;
-            this.output.WriteLine($"Proportion {proportion,-20}, Expected {percentage}");
-
-            proportion = proportion - percentage;
-            proportion = Math.Abs(proportion);
-            proportionIsCloseToPercentage = proportion <= PRECISION;
-
-            Assert.True(proportionIsCloseToPercentage);
-        }
-
-        [Theory]
-        [InlineData(1.0,  1 * 1000 * 1000L)]
-        [InlineData(12.5, 1 * 1000 * 1000L)]
-        [InlineData(25.0, 1 * 1000 * 1000L)]
-        [InlineData(50.0, 1 * 1000 * 1000L)]
-        [InlineData(75.0, 1 * 1000 * 1000L)]
-        [InlineData(99.9, 1 * 1000 * 1000L)]
-        public void falseAlmost_works_as_expected(double percentage, long iterations)
-        {
-            long falses;
-            double proportion;
-            bool proportionIsCloseToPercentage;
-
-            falses = 0;
-
-            for (long i = 0; i < iterations; i++)
-            {
-                if (false.at(percentage) == false)
-                    falses++;
-            }
-
-            proportion = (double)falses / (double)iterations * 100.0;
-            this.output.WriteLine($"Proportion {proportion,-20}, Expected {percentage}");
-
-            proportion = proportion - percentage;
-            proportion = Math.Abs(proportion);
-            proportionIsCloseToPercentage = proportion <= PRECISION;
-
-            Assert.True(proportionIsCloseToPercentage);
         }
 
         [Theory]

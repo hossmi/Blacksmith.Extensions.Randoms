@@ -2,24 +2,8 @@
 
 namespace Blacksmith.Extensions.Randoms
 {
-    public static class RandomExtensions
+    public static class RandomNumberExtensions
     {
-        public static bool at(this bool value, double percentage, Random random = null)
-        {
-            bool mustReturnValue;
-
-            if (percentage <= 0 || 100 <= percentage)
-                throw new ArgumentOutOfRangeException(nameof(percentage), $"The {nameof(percentage)} parameter must be between 0.0 and 100.0 excluding both.");
-
-            random = random ?? ShuffledCollections.ShuffleExtensions.CurrentRandom;
-            mustReturnValue = random.NextDouble() * 100.0 <= percentage;
-
-            if (mustReturnValue)
-                return value;
-            else
-                return !value;
-        }
-
         public static DateTime nextDate(this Random random, DateTime from, DateTime to)
         {
             DateTime result;
@@ -42,10 +26,63 @@ namespace Blacksmith.Extensions.Randoms
 
         public static TimeSpan nextTimeSpan(this Random random, TimeSpan max)
         {
-            return nextTimeSpan(random, TimeSpan.Zero, max);
+            return prv_nextTimeSpan(random, TimeSpan.Zero, max);
         }
 
         public static TimeSpan nextTimeSpan(this Random random, TimeSpan min, TimeSpan max)
+        {
+            return prv_nextTimeSpan(random, min, max);
+        }
+
+        public static double nextDouble(this Random random, double max)
+        {
+            return prv_nextDouble(random, 0, max);
+        }
+
+        public static double nextDouble(this Random random, double min, double max)
+        {
+            return prv_nextDouble(random, min, max);
+        }
+
+        public static decimal nextDecimal(this Random random, decimal max)
+        {
+            return prv_nextDecimal(random, decimal.Zero, max);
+        }
+
+        public static decimal nextDecimal(this Random random, decimal min, decimal max)
+        {
+            return prv_nextDecimal(random, min, max);
+        }
+
+        private static double prv_nextDouble(Random random, double min, double max)
+        {
+            double range;
+
+            if (random == null)
+                throw new ArgumentNullException(nameof(random));
+
+            if (max <= min)
+                throw new ArgumentOutOfRangeException($"The '{nameof(max)}' parameter must be grater than '{nameof(min)}' parameter.");
+
+            range = max - min;
+            return min + random.NextDouble() * range;
+        }
+
+        private static decimal prv_nextDecimal(Random random, decimal min, decimal max)
+        {
+            decimal range;
+
+            if (random == null)
+                throw new ArgumentNullException(nameof(random));
+
+            if (max <= min)
+                throw new ArgumentOutOfRangeException($"The '{nameof(max)}' parameter must be grater than '{nameof(min)}' parameter.");
+
+            range = max - min;
+            return min + (decimal)random.NextDouble() * range;
+        }
+
+        private static TimeSpan prv_nextTimeSpan(Random random, TimeSpan min, TimeSpan max)
         {
             TimeSpan result;
             TimeSpan delta;
@@ -63,44 +100,6 @@ namespace Blacksmith.Extensions.Randoms
             result = min + TimeSpan.FromSeconds(randomSeconds);
 
             return result;
-        }
-
-        public static double nextDouble(this Random random, double max)
-        {
-            return nextDouble(random, 0, max);
-        }
-
-        public static double nextDouble(this Random random, double min, double max)
-        {
-            double range;
-
-            if (random == null)
-                throw new ArgumentNullException(nameof(random));
-
-            if (max <= min)
-                throw new ArgumentOutOfRangeException($"The '{nameof(max)}' parameter must be grater than '{nameof(min)}' parameter.");
-
-            range = max - min;
-            return min + random.NextDouble() * range;
-        }
-
-        public static decimal nextDecimal(this Random random, decimal max)
-        {
-            return nextDecimal(random, decimal.Zero, max);
-        }
-
-        public static decimal nextDecimal(this Random random, decimal min, decimal max)
-        {
-            decimal range;
-
-            if (random == null)
-                throw new ArgumentNullException(nameof(random));
-
-            if (max <= min)
-                throw new ArgumentOutOfRangeException($"The '{nameof(max)}' parameter must be grater than '{nameof(min)}' parameter.");
-
-            range = max - min;
-            return min + (decimal)random.NextDouble() * range;
         }
     }
 }

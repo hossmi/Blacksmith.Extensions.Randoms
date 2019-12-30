@@ -1,21 +1,21 @@
-using Blacksmith.Extensions.ShuffledCollections;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
+using Blacksmith.Extensions.ShuffledCountableCollections;
+using Blacksmith.Extensions.ShuffledEnumerableCollections;
 
 namespace Blacksmith.Extensions.Randoms.Tests
 {
     public class ShuffleExtensionTests
     {
-        private const double PRECISION = 1D;
+        private const double PRECISION = 0.1D;
         private readonly ITestOutputHelper output;
 
         public ShuffleExtensionTests(ITestOutputHelper output)
         {
             this.output = output;
-            ShuffleExtensions.CurrentRandom = new Random(0);
         }
 
         [Theory]
@@ -26,6 +26,8 @@ namespace Blacksmith.Extensions.Randoms.Tests
             string[] names;
             IDictionary<string, long> choosenNames;
             double average;
+
+            RandomNumbers.RandomNumberExtensions.CurrentRandom = new Random(0);
 
             names = new string[]
             {
@@ -75,7 +77,8 @@ namespace Blacksmith.Extensions.Randoms.Tests
             double unorderedProportion;
             bool arrayIsMessyEnough;
 
-            ShuffleExtensions.CurrentShuffleStrategy = new Algorithms.ListShuffleStrategy(bufferSize);
+            RandomNumbers.RandomNumberExtensions.CurrentRandom = new Random(0);
+            ShuffleEnumerableExtensions.CurrentShuffleStrategy = new Algorithms.ListShuffleStrategy(bufferSize);
 
             array = Enumerable
                 .Range(0, arraySize)

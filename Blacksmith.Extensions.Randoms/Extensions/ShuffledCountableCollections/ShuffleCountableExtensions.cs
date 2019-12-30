@@ -4,31 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Blacksmith.Extensions.ShuffledCollections
+namespace Blacksmith.Extensions.ShuffledCountableCollections
 {
-    public static class ShuffleExtensions
+    public static class ShuffleCountableExtensions
     {
-        private static Random currentRandom;
-        private static IShuffleStrategy currentShuffleStrategy;
-
-        static ShuffleExtensions()
-        {
-            currentRandom = new Random(prv_generateSeed());
-            currentShuffleStrategy = new ListShuffleStrategy(1024);
-        }
-
-        public static Random CurrentRandom
-        {
-            get => currentRandom;
-            set => currentRandom = value ?? throw new ArgumentNullException(nameof(CurrentRandom));
-        }
-
-        public static IShuffleStrategy CurrentShuffleStrategy
-        {
-            get => currentShuffleStrategy;
-            set => currentShuffleStrategy = value ?? throw new ArgumentNullException(nameof(CurrentShuffleStrategy));
-        }
-
         public static T peekRandom<T>(this IReadOnlyList<T> items, Random random)
         {
             int index;
@@ -36,7 +15,7 @@ namespace Blacksmith.Extensions.ShuffledCollections
             if (items == null)
                 throw new ArgumentNullException(nameof(items));
 
-            random = random ?? currentRandom;
+            random = random ?? RandomNumbers.RandomNumberExtensions.CurrentRandom;
             index = prv_getRandomPosition(random, items.Count);
 
             return items[index];
@@ -49,7 +28,7 @@ namespace Blacksmith.Extensions.ShuffledCollections
             if (items == null)
                 throw new ArgumentNullException(nameof(items));
 
-            random = random ?? currentRandom;
+            random = random ?? RandomNumbers.RandomNumberExtensions.CurrentRandom;
             index = prv_getRandomPosition(random, items.Count);
 
             return items[index];
@@ -62,7 +41,7 @@ namespace Blacksmith.Extensions.ShuffledCollections
             if (items == null)
                 throw new ArgumentNullException(nameof(items));
 
-            random = random ?? currentRandom;
+            random = random ?? RandomNumbers.RandomNumberExtensions.CurrentRandom;
             index = prv_getRandomPosition(random, items.Length);
 
             return items[index];
@@ -76,7 +55,7 @@ namespace Blacksmith.Extensions.ShuffledCollections
             if (items == null)
                 throw new ArgumentNullException(nameof(items));
 
-            random = random ?? currentRandom;
+            random = random ?? RandomNumbers.RandomNumberExtensions.CurrentRandom;
 
             index = prv_getRandomPosition(random, items.Count);
             item = items[index];
@@ -92,23 +71,12 @@ namespace Blacksmith.Extensions.ShuffledCollections
             if (items == null)
                 throw new ArgumentNullException(nameof(items));
 
-            random = random ?? currentRandom;
+            random = random ?? RandomNumbers.RandomNumberExtensions.CurrentRandom;
 
             index = prv_getRandomInsertPosition(random, items.Count);
             items.Insert(index, item);
 
             return item;
-        }
-
-        public static IEnumerable<T> shuffle<T>(this IEnumerable<T> items, Random random = null, IShuffleStrategy shuffleStrategy = null)
-        {
-            if (items == null)
-                throw new ArgumentNullException(nameof(items));
-
-            random = random ?? currentRandom;
-            shuffleStrategy = shuffleStrategy ?? CurrentShuffleStrategy;
-
-            return shuffleStrategy.shuffle<T>(items, random);
         }
 
         private static int prv_getRandomPosition(Random random, int count)
@@ -125,16 +93,6 @@ namespace Blacksmith.Extensions.ShuffledCollections
                 throw new ArgumentOutOfRangeException();
 
             return random.Next(0, count);
-        }
-
-        private static int prv_generateSeed()
-        {
-            long seed = (long)Environment.CurrentManagedThreadId * Environment.TickCount;
-            seed = seed % int.MaxValue;
-            seed = seed * DateTime.UtcNow.Millisecond;
-            seed = seed % int.MaxValue;
-
-            return (int)seed;
         }
     }
 }
